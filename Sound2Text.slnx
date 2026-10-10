@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Sound2Text.Api/Sound2Text.Api.csproj" />
+  </Folder>
+</Solution>

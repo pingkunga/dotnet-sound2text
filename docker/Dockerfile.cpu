@@ -1,0 +1,23 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY src/Sound2Text.Api/Sound2Text.Api.csproj src/Sound2Text.Api/
+RUN dotnet restore src/Sound2Text.Api
+COPY src/ src/
+RUN dotnet publish src/Sound2Text.Api -c Release -o /app --no-restore \
+ && cd /app/runtimes \
+ && rm -rf cuda \
+ && find . -mindepth 1 -maxdepth 1 ! -name linux-x64 -exec rm -rf {} +
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ffmpeg curl \
+ && rm -rf /var/lib/apt/lists/*
+ENV ASPNETCORE_URLS=http://+:8080 \
+    Whisper__UseGpu=false \
+    Whisper__ModelPath=/models/ggml-medium-q5_0.bin \
+    Whisper__DataDir=/data
+WORKDIR /app
+COPY --from=build /app .
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s CMD curl -fs http://localhost:8080/healthz || exit 1
+ENTRYPOINT ["dotnet", "Sound2Text.Api.dll"]

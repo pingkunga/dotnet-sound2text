@@ -1,0 +1,17 @@
+# NAS / CPU-only: docker compose -f docker-compose.nas.yml up -d --build
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cpu
+    image: sound2text:cpu
+    ports:
+      - "8080:8080"
+    environment:
+      Whisper__UseGpu: "false"
+      Whisper__ModelPath: /models/ggml-medium-q5_0.bin
+      Whisper__Threads: "4" # = NAS core count
+    volumes:
+      - ./models:/models:ro # NAS: e.g. /volume1/docker/sound2text/models
+      - ./data:/data        # NAS: e.g. /volume1/docker/sound2text/data
+    restart: unless-stopped

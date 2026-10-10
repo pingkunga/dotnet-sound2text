@@ -1,0 +1,5 @@
+bin/
+obj/
+data/
+models/*.bin
+.vs/
